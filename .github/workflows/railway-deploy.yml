@@ -3,7 +3,6 @@ name: Deploy to Railway
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
   deploy:
@@ -15,31 +14,11 @@ jobs:
       - name: Install Railway CLI
         run: |
           set -e
+          echo "Starting install"
           curl -fsSL https://railway.app/install.sh | sh
-          echo "installed railway"
-
-      - name: Auth check
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
-        run: |
-          export PATH="$HOME/.railway/bin:$PATH"
-          railway whoami || echo "whoami failed"
-          railway status || echo "status failed"
-
-      - name: Create railway.toml
-        run: |
-          python3 -c "
-import os
-content = '[build]\nbuilder = "nixpacks"\n[deploy]\nport = 3000\nstartCommand = "./new-api"\n'
-with open('railway.toml','w') as f: f.write(content)
-print('ok')
-"
-          cat railway.toml
+          railway --version
 
       - name: Deploy
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
         run: |
           export PATH="$HOME/.railway/bin:$PATH"
-          railway up --detach --json --project-id ${{ secrets.RAILWAY_PROJECT_ID }} --service new-api || echo "deploy failed"
+          railway status
