@@ -11,30 +11,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Railway CLI
+      - name: Install Railway
         run: |
-          echo "=== Installing railway ==="
-          curl -fsSL https://railway.app/install.sh | sh
-          echo "=== Install done ==="
-
-      - name: Check railway
-        run: |
-          echo "PATH=$HOME/.railway/bin:$PATH"
-          ls -la $HOME/.railway/bin/railway 2>/dev/null || echo "binary not found"
-          $HOME/.railway/bin/railway --version 2>&1 || echo "version check failed"
-
-      - name: Auth test
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
-        run: |
-          echo "token=${RAILWAY_TOKEN:0:8}"
-          export PATH="$HOME/.railway/bin:$PATH"
-          railway whoami 2>&1 | head -5
-
-      - name: Deploy
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: |
-          export PATH="$HOME/.railway/bin:$PATH"
-          railway up --detach --json --project-id ${{ secrets.RAILWAY_PROJECT_ID }} --service new-api 2>&1 | head -20 || echo "DEPLOY_FAILED"
+          curl -fsSL https://railway.app/install.sh > /tmp/railway-install.sh
+          head -20 /tmp/railway-install.sh
+          echo "---"
+          tail -20 /tmp/railway-install.sh
