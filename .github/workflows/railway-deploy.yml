@@ -1,4 +1,4 @@
-name: Deploy to Railway
+name: Railway Deploy
 
 on:
   push:
@@ -6,44 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: |
-          set -e
-          curl -fsSL https://railway.app/install.sh | sh
-          export PATH="$HOME/.railway/bin:$PATH"
-          railway --version
-
-      - name: Configure Railway token
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
-        run: |
-          export PATH="$HOME/.railway/bin:$PATH"
-          railway whoami || true
-          railway status || true
-
-      - name: Create railway.toml
-        run: |
-          cat > railway.toml << 'TOML'
-[build]
-builder = "docker"
-dockerfilePath = "Dockerfile"
-
-[deploy]
-startCommand = "/new-api"
-port = 3000
-TOML
-          cat railway.toml
-
-      - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: |
-          export PATH="$HOME/.railway/bin:$PATH"
-          railway up --detach --json --project-id ${{ secrets.RAILWAY_PROJECT_ID }} --service new-api || echo "DEPLOY_FAILED"
+      - name: Test
+        run: echo "Hello"
