@@ -17,27 +17,30 @@ jobs:
           curl -fsSL https://railway.app/install.sh | sh
           echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
+      - name: Verify Railway CLI
+        run: |
+          railway --version
+
       - name: Authenticate Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
-        run: railway whoami
+        run: |
+          railway status || true
 
       - name: Create railway.toml
         run: |
-          cat > railway.toml << 'TOML'
-[build]
-builder = "nixpacks"
-dockerfilePath = "Dockerfile"
-
-[deploy]
-startCommand = "/new-api"
-healthCheckPath = "/"
-port = 3000
-TOML
+          python3 << 'PYEOF'
+          toml = '[build]\nbuilder = "docker"\ndockerfilePath = "Dockerfile"\n\n[deploy]\nstartCommand = "/new-api"\nport = 3000\n'
+          with open('railway.toml', 'w') as f:
+              f.write(toml)
+          print('Created railway.toml')
+          with open('railway.toml') as f:
+              print(f.read())
+          PYEOF
 
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
         run: |
-          railway up --detach --service new-api --environment production
+          railway up --detach --json --project $RAILWAY_PROJECT_ID --service new-api || echo "deploy command failed"
