@@ -11,9 +11,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Railway
+      - name: Install Railway CLI
         run: |
-          curl -fsSL https://railway.app/install.sh > /tmp/railway-install.sh
-          head -20 /tmp/railway-install.sh
-          echo "---"
-          tail -20 /tmp/railway-install.sh
+          bash <(curl -fsSL https://railway.app/install.sh)
+          echo "INSTALL_DONE"
+          ls ~/.railway/bin/
+
+      - name: Verify railway
+        run: |
+          bash -c 'railway --version'
+
+      - name: Auth check
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
+        run: |
+          bash -c 'railway whoami'
+
+      - name: Create railway.toml
+        run: |
+          cat > railway.toml << 'TOML'
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "./new-api"
+port = 3000
+TOML
+          cat railway.toml
+
+      - name: Deploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          bash -c 'railway up --detach --project-id '$RAILWAY_PROJECT_ID' --service new-api'
